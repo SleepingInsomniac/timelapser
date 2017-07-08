@@ -34,7 +34,6 @@ class Capturer
     Dir.chdir @save_path
     puts 'Stitching images...'
     stitch
-    File.rm_rf "*.png" if @delete_screenshots
     puts 'Done!'
     Dir.chdir working_path
     @running = false
@@ -48,7 +47,7 @@ class Capturer
 
   def run_capture_loop!
     @thread = Thread.new do
-      while @running do
+      loop do
         take_screenshot
         sleep @interval
       end
@@ -69,7 +68,12 @@ class Capturer
   end
 
   def stitch
-    `ffmpeg -r 30 -i '%05d.png' #{@folder}.mp4 2>&1 /dev/null`
+    `ffmpeg -r 30 -i '%05d.png' #{@folder}.mp4 2> /dev/null`
+    if $?.success?
+      File.rm_rf "*.png" if @delete_screenshots
+    else
+      puts "Stitching failed!"
+    end
   end
 
 end
