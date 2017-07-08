@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path File.join(__dir__, '../lib')
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'optparse'
+require 'timelapser'
+
+$stdout.sync = true
+$stdin.sync = true
+
+options = {
+  interval: 1.0,
+  save_to: '~/Pictures/timelapses'
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: timelapser [options]"
+
+  opts.on("--version", "Show Version") do
+    $stdout.puts Timelapser::VERSION
+    exit
+  end
+  
+  opts.on("-h", "--help") do
+    $stdout.puts opts
+    exit
+  end
+  
+  opts.on("-i INTERVAL", "--interval INTERVAL", "Set screenshot interval") do |interval|
+    options[:interval] = interval.to_f
+  end
+
+  opts.on("-s PATH", '--save-path PATH', 'Save to') do |path|
+    options[:save_to] = path.to_s
+  end
+
+  opts.on('-d', '--delete-screenshots', 'Remove screenshots after') do |d|
+    options[:delete_screenshots] = true
+  end
+end.parse!
+
+capturer = Capturer.new(**options)
+capturer.start
+puts "Press enter to stop"
+gets
+capturer.stop
